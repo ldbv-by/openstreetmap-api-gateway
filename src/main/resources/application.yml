@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: openstreetmap-api-gateway
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: changeset-upload-path
+              uri: ${OSM_API_URL:https://api.openstreetmap.org/}
+              predicates:
+                - Path=/api/{api-version}/changeset/{changeset-id}/upload
+              filters:
+                - name: ChangesetUploadPreFilter
+
+            - id: default
+              uri: ${OSM_API_URL:https://api.openstreetmap.org/}
+              predicates:
+                - Path=/api/{api-version}/**
+
+openstreetmap-api-gateway:
+  openstreetmap-quality-framework-url: ${OSM_QUALITY_FRAMEWORK_SERVER:http://localhost:8082}
