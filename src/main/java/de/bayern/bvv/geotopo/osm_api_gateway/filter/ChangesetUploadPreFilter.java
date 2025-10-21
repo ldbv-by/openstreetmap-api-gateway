@@ -131,7 +131,7 @@ public class ChangesetUploadPreFilter extends AbstractGatewayFilterFactory<Chang
     private Mono<Void> rejectChangeset(ServerWebExchange exchange, QualityHubResultDto qualityHubResultDto) {
         exchange.getResponse().setStatusCode(HttpStatus.BAD_REQUEST);
         exchange.getResponse().getHeaders().add("Content-Type", "text/html");
-        exchange.getResponse().getHeaders().add("Validation-Error", "Todo: Feeehler!");
+        exchange.getResponse().getHeaders().add("Error", "<h1 style=\"color: red; font-size: 13pt;\"><br><b>OSM Quality Error</b></h1>");
         return exchange.getResponse().setComplete();
     }
 
