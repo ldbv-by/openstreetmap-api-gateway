@@ -27,7 +27,7 @@ public class OsmQualityFrameworkClient {
         return this.webClient
                 .post()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/osm-quality-framework/v1/quality-hub/check/changeset/{changesetId}")
+                        .path("osm-quality-framework/v1/quality-hub/check/changeset/{changesetId}")
                         .build(changesetId))
                 .contentType(MediaType.APPLICATION_XML)
                 .bodyValue(changeset)

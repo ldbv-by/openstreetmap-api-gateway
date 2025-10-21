@@ -20,4 +20,4 @@ spring:
                 - Path=/api/{api-version}/**
 
 openstreetmap-api-gateway:
-  openstreetmap-quality-framework-url: ${OSM_QUALITY_FRAMEWORK_SERVER:http://localhost:8082}
+  openstreetmap-quality-framework-url: ${OSM_QUALITY_FRAMEWORK_URL:http://localhost:8082/}
