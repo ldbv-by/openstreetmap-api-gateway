@@ -2,6 +2,8 @@ package de.bayern.bvv.geotopo.osm_api_gateway.filter;
 
 import de.bayern.bvv.geotopo.osm_api_gateway.component.OsmQualityFrameworkClient;
 import de.bayern.bvv.geotopo.osm_api_gateway.dto.QualityHubResultDto;
+import de.bayern.bvv.geotopo.osm_api_gateway.dto.QualityServiceErrorDto;
+import de.bayern.bvv.geotopo.osm_api_gateway.dto.QualityServiceResultDto;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,7 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.stereotype.Component;
@@ -128,11 +131,57 @@ public class ChangesetUploadPreFilter extends AbstractGatewayFilterFactory<Chang
     /**
      * Changeset is invalid. Reject changeset.
      */
-    private Mono<Void> rejectChangeset(ServerWebExchange exchange, QualityHubResultDto qualityHubResultDto) {
-        exchange.getResponse().setStatusCode(HttpStatus.BAD_REQUEST);
-        exchange.getResponse().getHeaders().add("Content-Type", "text/html");
-        exchange.getResponse().getHeaders().add("Error", "<h1 style=\"color: red; font-size: 13pt;\"><br><b>OSM Quality Error</b></h1>");
-        return exchange.getResponse().setComplete();
+    private Mono<Void> rejectChangeset(ServerWebExchange exchange, QualityHubResultDto qualityHubResult) {
+        var response = exchange.getResponse();
+        response.setStatusCode(HttpStatus.BAD_REQUEST);
+        response.getHeaders().set("Content-Type", MediaType.TEXT_PLAIN_VALUE);
+        response.getHeaders().add("Error", this.getRejectMessageAsHtml(qualityHubResult));
+
+        var origin = exchange.getRequest().getHeaders().getOrigin();
+        if (origin != null) {
+            response.getHeaders().set("access-control-allow-origin", origin);
+            response.getHeaders().set("vary", "origin");
+            response.getHeaders().set("access-control-allow-credentials", "true");
+        }
+
+        byte[] bytes = this.getRejectMessageAsPlainText(qualityHubResult).getBytes(StandardCharsets.UTF_8);
+        var buffer = response.bufferFactory().wrap(bytes);
+        return response.writeWith(Mono.just(buffer))
+                .doOnError(ex -> DataBufferUtils.release(buffer));
+    }
+
+
+    /**
+     * Get reject message as plain text.
+     */
+    private String getRejectMessageAsPlainText(QualityHubResultDto qualityHubResult) {
+        StringBuilder rejectMessage = new StringBuilder();
+        for (QualityServiceResultDto qualityServiceResult : qualityHubResult.qualityServiceResults()) {
+            if (!qualityServiceResult.isValid()) {
+                for (QualityServiceErrorDto error : qualityServiceResult.errors()) {
+                    rejectMessage.append("\n • ").append(error.errorText());
+                }
+            }
+        }
+
+        return rejectMessage.toString();
+    }
+
+
+    /**
+     * Get reject message as html text.
+     */
+    private String getRejectMessageAsHtml(QualityHubResultDto qualityHubResult) {
+        StringBuilder rejectMessage = new StringBuilder("<h1 style=\"color: red; font-size: 13pt;\"><br><b>Changeset rejected ...</b></h1>");
+        for (QualityServiceResultDto qualityServiceResult : qualityHubResult.qualityServiceResults()) {
+            if (!qualityServiceResult.isValid()) {
+                for (QualityServiceErrorDto error : qualityServiceResult.errors()) {
+                    rejectMessage.append("<br>- ").append(error.errorText());
+                }
+            }
+        }
+
+        return rejectMessage.toString();
     }
 
 
