@@ -19,5 +19,17 @@ spring:
               predicates:
                 - Path=/api/{api-version}/**
 
+          globalcors:
+            add-to-simple-url-handler-mapping: true
+            cors-configurations:
+              '[/**]':
+                allowed-origins: "http://localhost:3000"
+                allowed-methods: [ GET, POST, PUT, PATCH, DELETE, OPTIONS ]
+                allowed-headers: "*"
+                allow-credentials: true
+
+          default-filters:
+            - SetResponseHeader=access-control-allow-origin, http://localhost:3000
+
 openstreetmap-api-gateway:
-  openstreetmap-quality-framework-url: ${OSM_QUALITY_FRAMEWORK_URL:http://localhost:8082/}
+  openstreetmap-quality-framework-url: ${OSM_QUALITY_FRAMEWORK_URL}
