@@ -27,11 +27,25 @@ public class OsmQualityFrameworkClient {
         return this.webClient
                 .post()
                 .uri(uriBuilder -> uriBuilder
-                        .path("osm-quality-framework/v1/quality-hub/check/changeset/{changesetId}")
+                        .path("/osm-quality-framework/v1/quality-hub/check/changeset/{changesetId}")
                         .build(changesetId))
                 .contentType(MediaType.APPLICATION_XML)
                 .bodyValue(changeset)
                 .retrieve()
                 .bodyToMono(QualityHubResultDto.class);
+    }
+
+    /**
+     * Finish changeset.
+     */
+    public void finishChangeset(Long changesetId){
+        this.webClient
+                .put()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/osm-quality-framework/v1/quality-hub/finish/changeset/{changesetId}")
+                        .build(changesetId))
+                .retrieve()
+                .toBodilessEntity()
+                .subscribe();
     }
 }

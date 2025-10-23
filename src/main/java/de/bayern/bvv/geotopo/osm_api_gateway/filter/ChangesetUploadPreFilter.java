@@ -5,7 +5,6 @@ import de.bayern.bvv.geotopo.osm_api_gateway.dto.QualityHubResultDto;
 import de.bayern.bvv.geotopo.osm_api_gateway.dto.QualityServiceErrorDto;
 import de.bayern.bvv.geotopo.osm_api_gateway.dto.QualityServiceResultDto;
 import lombok.Data;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -13,7 +12,7 @@ import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFac
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.core.io.buffer.DefaultDataBufferFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -21,6 +20,7 @@ import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.ServerWebExchangeDecorator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -114,17 +114,31 @@ public class ChangesetUploadPreFilter extends AbstractGatewayFilterFactory<Chang
                                         GatewayFilterChain chain,
                                         QualityHubResultDto qualityHubResultDto) {
 
-        ServerHttpRequest modifiedRequest = new ServerHttpRequestDecorator(exchange.getRequest()) {
+        ServerHttpRequest modifiedRequest = exchange.getRequest().mutate().build();
+        ServerWebExchange modifiedExchange = new ServerWebExchangeDecorator(exchange) {
             @Override
-            @NonNull
-            public Flux<DataBuffer> getBody() {
-                final byte[] modifiedChangeset = qualityHubResultDto.changesetXml().getBytes(StandardCharsets.UTF_8);
-                return Flux.defer(() ->
-                        Flux.just(DefaultDataBufferFactory.sharedInstance.wrap(modifiedChangeset)));
+            public ServerHttpRequest getRequest() {
+                return new ServerHttpRequestDecorator(modifiedRequest) {
+                    @Override
+                    public Flux<DataBuffer> getBody() {
+                        byte[] bytes = qualityHubResultDto.changesetXml().getBytes(StandardCharsets.UTF_8);
+                        DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(bytes);
+                        return Flux.just(buffer);
+                    }
+
+                    @Override
+                    public HttpHeaders getHeaders() {
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.putAll(super.getHeaders());
+                        headers.setContentLength(qualityHubResultDto.changesetXml().getBytes(StandardCharsets.UTF_8).length);
+                        headers.setContentType(MediaType.APPLICATION_XML);
+                        return headers;
+                    }
+                };
             }
         };
 
-        return chain.filter(exchange.mutate().request(modifiedRequest).build());
+        return chain.filter(modifiedExchange);
     }
 
 

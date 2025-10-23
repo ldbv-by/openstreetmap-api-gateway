@@ -8,14 +8,15 @@ spring:
         webflux:
           routes:
             - id: changeset-upload-path
-              uri: ${OSM_API_URL:https://api.openstreetmap.org/}
+              uri: ${OSM_API_URL:https://api.openstreetmap.org}
               predicates:
                 - Path=/api/{api-version}/changeset/{changeset-id}/upload
               filters:
                 - name: ChangesetUploadPreFilter
+                - name: ChangesetUploadPostFilter
 
             - id: default
-              uri: ${OSM_API_URL:https://api.openstreetmap.org/}
+              uri: ${OSM_API_URL:https://api.openstreetmap.org}
               predicates:
                 - Path=/api/{api-version}/**
 
