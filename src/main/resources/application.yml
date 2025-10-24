@@ -32,5 +32,9 @@ spring:
           default-filters:
             - SetResponseHeader=access-control-allow-origin, http://localhost:3000
 
+  http:
+    codecs:
+      max-in-memory-size: 1GB
+
 openstreetmap-api-gateway:
   openstreetmap-quality-framework-url: ${OSM_QUALITY_FRAMEWORK_URL}
