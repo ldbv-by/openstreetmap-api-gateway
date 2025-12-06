@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.6</version>
+        <version>4.0.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -18,18 +18,21 @@
 
     <properties>
         <java.version>24</java.version>
-        <spring-cloud.version>2025.0.0</spring-cloud.version>
+        <spring-cloud.version>2025.1.0</spring-cloud.version>
         <jts-core.version>1.20.0</jts-core.version>
         <jakarta-xml-bind.version>4.0.4</jakarta-xml-bind.version>
-        <glassfish-jaxb.version>4.0.5</glassfish-jaxb.version>
-        <jts-core.version>1.20.0</jts-core.version>
-        <jackson-datatype-jts.version>2.19.2</jackson-datatype-jts.version>
+        <glassfish-jaxb.version>4.0.6</glassfish-jaxb.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webclient</artifactId>
         </dependency>
 
         <dependency>
@@ -56,6 +59,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.locationtech.jts.io</groupId>
+            <artifactId>jts-io-common</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
         </dependency>
@@ -63,16 +71,6 @@
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.locationtech.jts</groupId>
-            <artifactId>jts-core</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.graphhopper.external</groupId>
-            <artifactId>jackson-datatype-jts</artifactId>
         </dependency>
     </dependencies>
 
@@ -93,6 +91,12 @@
             </dependency>
 
             <dependency>
+                <groupId>org.locationtech.jts.io</groupId>
+                <artifactId>jts-io-common</artifactId>
+                <version>${jts-core.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>jakarta.xml.bind</groupId>
                 <artifactId>jakarta.xml.bind-api</artifactId>
                 <version>${jakarta-xml-bind.version}</version>
@@ -102,18 +106,6 @@
                 <groupId>org.glassfish.jaxb</groupId>
                 <artifactId>jaxb-runtime</artifactId>
                 <version>${glassfish-jaxb.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.locationtech.jts</groupId>
-                <artifactId>jts-core</artifactId>
-                <version>${jts-core.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.graphhopper.external</groupId>
-                <artifactId>jackson-datatype-jts</artifactId>
-                <version>${jackson-datatype-jts.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

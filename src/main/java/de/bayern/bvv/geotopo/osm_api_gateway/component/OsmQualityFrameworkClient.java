@@ -9,6 +9,7 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class OsmQualityFrameworkClient {
+
     private final WebClient webClient;
 
     /**
