@@ -9,4 +9,5 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class ApiGatewayConfig {
     private String openstreetmapQualityFrameworkUrl;
+    private String openstreetmapNotificationServiceUrl;
 }

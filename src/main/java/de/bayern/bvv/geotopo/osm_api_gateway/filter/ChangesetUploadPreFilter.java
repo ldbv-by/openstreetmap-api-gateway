@@ -1,5 +1,6 @@
 package de.bayern.bvv.geotopo.osm_api_gateway.filter;
 
+import de.bayern.bvv.geotopo.osm_api_gateway.component.OsmNotificationServiceClient;
 import de.bayern.bvv.geotopo.osm_api_gateway.component.OsmQualityFrameworkClient;
 import de.bayern.bvv.geotopo.osm_api_gateway.dto.QualityHubResultDto;
 import de.bayern.bvv.geotopo.osm_api_gateway.dto.QualityServiceErrorDto;
@@ -32,10 +33,13 @@ import java.util.Map;
 public class ChangesetUploadPreFilter extends AbstractGatewayFilterFactory<ChangesetUploadPreFilter.Config> {
 
     private final OsmQualityFrameworkClient osmQualityFrameworkClient;
+    private final OsmNotificationServiceClient osmNotificationServiceClient;
 
-    public ChangesetUploadPreFilter(OsmQualityFrameworkClient osmQualityFrameworkClient) {
+    public ChangesetUploadPreFilter(OsmQualityFrameworkClient osmQualityFrameworkClient,
+                                    OsmNotificationServiceClient osmNotificationServiceClient) {
         super(Config.class);
         this.osmQualityFrameworkClient = osmQualityFrameworkClient;
+        this.osmNotificationServiceClient = osmNotificationServiceClient;
     }
 
     /**
@@ -63,7 +67,14 @@ public class ChangesetUploadPreFilter extends AbstractGatewayFilterFactory<Chang
                 if (qualityResponseDto.isValid()) {
                     return this.redirectToOsmApi(exchange, chain, qualityResponseDto);
                 } else {
-                    return this.rejectChangeset(exchange, qualityResponseDto);
+                    Mono<Void> notify = Mono.empty();
+
+                    if (this.osmNotificationServiceClient.isConfigured()) {
+                        // Send error to openstreetmap-notification-service
+                        notify = this.osmNotificationServiceClient.sendQualityHubResult(qualityResponseDto);
+                    }
+
+                    return notify.then(this.rejectChangeset(exchange, qualityResponseDto));
                 }
             });
         };
@@ -149,17 +160,11 @@ public class ChangesetUploadPreFilter extends AbstractGatewayFilterFactory<Chang
         var response = exchange.getResponse();
         response.setStatusCode(HttpStatus.BAD_REQUEST);
         response.getHeaders().set("Content-Type", MediaType.TEXT_PLAIN_VALUE);
-        response.getHeaders().add("Error", this.getRejectMessageAsHtml(qualityHubResult));
-
-        var origin = exchange.getRequest().getHeaders().getOrigin();
-        if (origin != null) {
-            response.getHeaders().set("access-control-allow-origin", origin);
-            response.getHeaders().set("vary", "origin");
-            response.getHeaders().set("access-control-allow-credentials", "true");
-        }
+        response.getHeaders().set("Error", this.getRejectMessageAsHtml(qualityHubResult));
 
         byte[] bytes = this.getRejectMessageAsPlainText(qualityHubResult).getBytes(StandardCharsets.UTF_8);
         var buffer = response.bufferFactory().wrap(bytes);
+
         return response.writeWith(Mono.just(buffer))
                 .doOnError(ex -> DataBufferUtils.release(buffer));
     }
