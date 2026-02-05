@@ -2,10 +2,8 @@ package de.bayern.bvv.geotopo.osm_api_gateway.component;
 
 import de.bayern.bvv.geotopo.osm_api_gateway.config.ApiGatewayConfig;
 import de.bayern.bvv.geotopo.osm_api_gateway.dto.QualityHubResultDto;
-import de.bayern.bvv.geotopo.osm_api_gateway.dto.QualityServiceErrorDto;
 import de.bayern.bvv.geotopo.osm_api_gateway.dto.QualityServiceResultDto;
-import de.bayern.bvv.geotopo.osm_api_gateway.dto.notification.NewNotification;
-import de.bayern.bvv.geotopo.osm_api_gateway.dto.notification.NotificationType;
+import de.bayern.bvv.geotopo.osm_api_gateway.dto.NewNotification;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -73,7 +71,7 @@ public class OsmNotificationServiceClient {
     private Flux<NewNotification> toNotifications(QualityServiceResultDto result) {
         return Flux.fromIterable(result.errors())
                 .map(err -> new NewNotification(
-                        NotificationType.QUALITY_CHECK,
+                        "QUALITY_CHECK",
                         getNotificationGroup(result.changesetId()),
                         NOTIFICATION_COLOR,
                         result.qualityServiceId(),

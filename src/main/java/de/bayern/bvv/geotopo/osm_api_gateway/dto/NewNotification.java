@@ -1,9 +1,9 @@
-package de.bayern.bvv.geotopo.osm_api_gateway.dto.notification;
+package de.bayern.bvv.geotopo.osm_api_gateway.dto;
 
 import org.locationtech.jts.geom.Geometry;
 
 public record NewNotification(
-        NotificationType type,
+        String typeId,
         String groupDescription,
         String color,
         String receiver,
