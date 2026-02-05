@@ -29,6 +29,8 @@ spring:
                 allowed-headers: "*"
                 allow-credentials: true
 
+          default-filters:
+            - SetResponseHeader=access-control-allow-origin, http://localhost:3000
   http:
     codecs:
       max-in-memory-size: 1GB
